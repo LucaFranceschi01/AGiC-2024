@@ -111,10 +111,10 @@ def MyFaceDetectionFunction(A):
     # Function to implement
     gray = cv2.cvtColor(A, cv2.COLOR_BGR2GRAY)
     faces = faceCascade.detectMultiScale(gray,
-                                         scaleFactor=1.1,
-                                         minNeighbors=5,
-                                         minSize=(60, 60),
-                                         flags=cv2.CASCADE_SCALE_IMAGE)
+                                        scaleFactor=1.25,
+                                        minNeighbors=4,
+                                        minSize=(60, 60),
+                                        flags=cv2.CASCADE_SCALE_IMAGE)
     
     retmat = []
     for (x,y,w,h) in faces:
