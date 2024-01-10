@@ -6,6 +6,9 @@ import time
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 
+import cv2
+import os
+
 
 def CHALL_AGC_ComputeDetScores(DetectionSTR, AGC_Challenge1_STR, show_figures):
     #  Compute face detection score
@@ -106,7 +109,18 @@ def CHALL_AGC_ComputeDetScores(DetectionSTR, AGC_Challenge1_STR, show_figures):
 
 def MyFaceDetectionFunction(A):
     # Function to implement
-    print()
+    gray = cv2.cvtColor(A, cv2.COLOR_BGR2GRAY)
+    faces = faceCascade.detectMultiScale(gray,
+                                         scaleFactor=1.1,
+                                         minNeighbors=5,
+                                         minSize=(60, 60),
+                                         flags=cv2.CASCADE_SCALE_IMAGE)
+    
+    retmat = []
+    for (x,y,w,h) in faces:
+        retmat.append([x, y, x+w, y+h])
+
+    return retmat
 
 
 # Basic script for Face Detection Challenge
@@ -115,7 +129,11 @@ def MyFaceDetectionFunction(A):
 # Universitat Pompeu Fabra
 
 # Load challenge Training data
-dir_challenge = ""
+
+cascPathface = os.path.dirname(cv2.__file__) + "/data/haarcascade_frontalface_alt2.xml"
+faceCascade = cv2.CascadeClassifier(cascPathface)
+
+dir_challenge = "../"
 AGC_Challenge1_TRAINING = loadmat(dir_challenge + "AGC_Challenge1_Training.mat")
 
 AGC_Challenge1_TRAINING = np.squeeze(AGC_Challenge1_TRAINING['AGC_Challenge1_TRAINING'])
@@ -125,7 +143,7 @@ AGC_Challenge1_TRAINING = pd.DataFrame(AGC_Challenge1_TRAINING, columns=columns)
 
 # Provide the path to the input images, for example
 # 'C:/AGC_Challenge/images/'
-imgPath = ""
+imgPath = "../TRAINING/"
 AGC_Challenge1_TRAINING['imageName'] = imgPath + AGC_Challenge1_TRAINING['imageName'].astype(str)
 # Initialize results structure
 DetectionSTR = []
