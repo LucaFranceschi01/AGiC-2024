@@ -9,6 +9,8 @@ from matplotlib.patches import Rectangle
 import cv2
 import os
 
+import dlib
+import imutils
 
 def CHALL_AGC_ComputeDetScores(DetectionSTR, AGC_Challenge1_STR, show_figures):
     #  Compute face detection score
@@ -107,18 +109,28 @@ def CHALL_AGC_ComputeDetScores(DetectionSTR, AGC_Challenge1_STR, show_figures):
     return FD_score
 
 
-def MyFaceDetectionFunction(A):
-    # Function to implement
-    gray = cv2.cvtColor(A, cv2.COLOR_BGR2GRAY)
-    faces = faceCascade.detectMultiScale(gray,
-                                        scaleFactor=1.25,
-                                        minNeighbors=4,
-                                        minSize=(60, 60),
-                                        flags=cv2.CASCADE_SCALE_IMAGE)
-    
+def MyFaceDetectionFunction(detector, A):
     retmat = []
-    for (x,y,w,h) in faces:
-        retmat.append([x, y, x+w, y+h])
+    if type(detector) == cv2.CascadeClassifier:
+        gray = cv2.cvtColor(A, cv2.COLOR_BGR2GRAY)
+        faces = detector.detectMultiScale(  gray,
+                                            scaleFactor=1.25,
+                                            minNeighbors=4,
+                                            minSize=(60, 60),
+                                            flags=cv2.CASCADE_SCALE_IMAGE)
+        
+        for (x,y,w,h) in faces:
+            retmat.append([x, y, x+w, y+h])
+
+    elif type(detector) == dlib.cnn_face_detection_model_v1:
+        image = imutils.resize(A, width=300)
+        rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        results = detector(rgb, 0)
+        for r in results:
+            retmat.append([r.left(), r.top(), r.right(), r.bottom()])
+
+    else:
+        print("Detector not implemented")
 
     return retmat
 
@@ -130,8 +142,13 @@ def MyFaceDetectionFunction(A):
 
 # Load challenge Training data
 
-cascPathface = os.path.dirname(cv2.__file__) + "/data/haarcascade_frontalface_alt2.xml"
-faceCascade = cv2.CascadeClassifier(cascPathface)
+# Get the OpenCV detector from the library files
+path_to_cv2_model = os.path.dirname(cv2.__file__) + "/data/haarcascade_frontalface_alt2.xml"
+cv2_detector = cv2.CascadeClassifier(path_to_cv2_model)
+
+# A DLIB example model extracted from:
+# http://dlib.net/files/mmod_human_face_detector.dat.bz2
+dlib_detector = dlib.cnn_face_detection_model_v1("mmod_human_face_detector.dat")
 
 dir_challenge = "../"
 AGC_Challenge1_TRAINING = loadmat(dir_challenge + "AGC_Challenge1_Training.mat")
@@ -163,7 +180,7 @@ for idx, im in enumerate(AGC_Challenge1_TRAINING['imageName']):
         # Each bounding box that is detected will be indicated in a
         # separate row in det_faces
 
-        det_faces = MyFaceDetectionFunction(A)
+        det_faces = MyFaceDetectionFunction(dlib_detector, A)
 
         tt = time.time() - ti
         total_time = total_time + tt
