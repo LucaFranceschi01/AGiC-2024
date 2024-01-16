@@ -90,7 +90,7 @@ def CHALL_AGC_ComputeDetScores(DetectionSTR, AGC_Challenge1_STR, show_figures):
                         scoresSTR['Fmatrix'][i] = 0
                     else:
                         max_ind = np.unravel_index(np.argmax(scoresSTR['Fmatrix'][i], axis=None), scoresSTR['Fmatrix'][i].shape)
-                        scoresSTR['F1'][i][max_ind[1]] = max_F
+                        scoresSTR['F1'][i][k3] = max_F
                         scoresSTR['Fmatrix'][i][max_ind[0], :] = 0
                         scoresSTR['Fmatrix'][i][:, max_ind[1]] = 0
         if show_figures:
