@@ -58,7 +58,7 @@ def my_face_recognition_function(A, my_FRmodel):
 # Universitat Pompeu Fabra
 
 # Load challenge Training data
-dir_challenge3 = " "
+dir_challenge3 = "../"
 AGC_Challenge3_TRAINING = loadmat(dir_challenge3 + "AGC_Challenge3_Training.mat")
 AGC_Challenge3_TRAINING = np.squeeze(AGC_Challenge3_TRAINING['AGC_Challenge3_TRAINING'])
 
@@ -71,7 +71,7 @@ ids = np.concatenate(ids).ravel().tolist()
 faceBox = AGC_Challenge3_TRAINING['faceBox']
 faceBox = list(itertools.chain.from_iterable(faceBox))
 
-imgPath = " "
+imgPath = "../TRAINING/"
 
 # Initialize results structure
 AutoRecognSTR = []
@@ -80,7 +80,7 @@ AutoRecognSTR = []
 total_time = 0
 
 # Load your FRModel
-my_FRmodel = " "
+my_FRmodel = " "                                                                # TODO: load model
 
 for idx, im in enumerate(imageName):
 
