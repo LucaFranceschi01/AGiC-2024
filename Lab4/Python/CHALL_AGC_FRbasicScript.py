@@ -6,6 +6,7 @@ from scipy.io import loadmat
 import random
 import time
 import itertools
+import torch
 
 
 def CHALL_AGC_ComputeRecognScores(auto_ids, true_ids):
@@ -47,7 +48,7 @@ def CHALL_AGC_ComputeRecognScores(auto_ids, true_ids):
     return FR_score
 
 
-def my_face_recognition_function(A, my_FRmodel):
+def my_face_recognition_function(A, my_detection_model, my_recognition_model):
     # Function to implement
     print()
 
@@ -80,7 +81,8 @@ AutoRecognSTR = []
 total_time = 0
 
 # Load your FRModel
-my_FRmodel = " "                                                                # TODO: load model
+my_FD_model = torch.load('detection_model.pth')
+my_FR_model = torch.load('recognition_model.pth')
 
 for idx, im in enumerate(imageName):
 
@@ -100,7 +102,7 @@ for idx, im in enumerate(imageName):
         # a) A number between 1 and 80 (representing one of the identities in the training set)
         # b) A "-1" indicating that none of the 80 users is present in the input image
 
-        autom_id = my_face_recognition_function(A, my_FRmodel)
+        autom_id = my_face_recognition_function(A, my_FD_model, my_FR_model)
 
         tt = time.time() - ti
         total_time = total_time + tt
