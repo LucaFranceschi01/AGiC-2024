@@ -81,8 +81,8 @@ AutoRecognSTR = []
 total_time = 0
 
 # Load your FRModel
-my_FD_model = torch.load('detection_model.pth')
-my_FR_model = torch.load('recognition_model.pth')
+my_FD_model = torch.load('../detection_model.pth')
+my_FR_model = torch.load('../recognition_model.pth')
 
 for idx, im in enumerate(imageName):
 
