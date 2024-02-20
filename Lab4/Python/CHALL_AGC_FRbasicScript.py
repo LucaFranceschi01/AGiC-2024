@@ -7,7 +7,8 @@ import random
 import time
 import itertools
 import torch
-
+import torch.jit
+from PIL import Image
 
 def CHALL_AGC_ComputeRecognScores(auto_ids, true_ids):
     #   Compute face recognition score
@@ -48,9 +49,13 @@ def CHALL_AGC_ComputeRecognScores(auto_ids, true_ids):
     return FR_score
 
 
-def my_face_recognition_function(A, my_detection_model, my_recognition_model):
-    # Function to implement
-    print()
+def my_face_recognition_function(A, detector, recognizer):
+    image = Image.fromarray(A)
+    bounds = detector.predict(image)
+    image = image.crop(bounds)
+    output = recognizer.predict(image)
+    print(output)
+    return output
 
 
 # Basic script for Face Recognition Challenge
@@ -81,8 +86,8 @@ AutoRecognSTR = []
 total_time = 0
 
 # Load your FRModel
-my_FD_model = torch.load('../detection_model.pt')
-my_FR_model = torch.load('../recognition_model.pt')
+my_FD_model = torch.jit.load('../detection_model.pt')
+my_FR_model = torch.jit.load('../recognition_model.pt')
 
 for idx, im in enumerate(imageName):
 

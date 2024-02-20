@@ -1,4 +1,6 @@
 .venv
+.vscode
+
 Lab1/AGC_Challenge1_Materials/TRAINING
 Lab2/archive
 Lab2/dataset_500
@@ -9,4 +11,3 @@ Lab3/group_2
 Lab4/TRAINING
 
 testing/
-detection_model.pt
