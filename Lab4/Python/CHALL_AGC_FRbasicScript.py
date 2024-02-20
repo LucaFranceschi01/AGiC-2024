@@ -10,6 +10,8 @@ import torch
 import torch.jit
 from PIL import Image
 
+import cnns as nn
+
 def CHALL_AGC_ComputeRecognScores(auto_ids, true_ids):
     #   Compute face recognition score
     #
@@ -49,10 +51,10 @@ def CHALL_AGC_ComputeRecognScores(auto_ids, true_ids):
     return FR_score
 
 
-def my_face_recognition_function(A, detector, recognizer):
+def my_face_recognition_function(A, detector: nn.CNN, recognizer: nn.CNN):
     image = Image.fromarray(A)
     bounds = detector.predict(image)
-    image = image.crop(bounds)
+    image = nn.myCrop(image, bounds)
     output = recognizer.predict(image)
     print(output)
     return output
@@ -86,8 +88,16 @@ AutoRecognSTR = []
 total_time = 0
 
 # Load your FRModel
-my_FD_model = torch.jit.load('../detection_model.pt')
-my_FR_model = torch.jit.load('../recognition_model.pt')
+my_FD_model = nn.CNN(nn.detection_cnn_layers, nn.detection_fc_layers, 'detection')
+my_FR_model = nn.CNN(nn.recognition_cnn_layers, nn.recognition_fc_layers, 'recognition')
+
+my_FD_model.load_state_dict(torch.load('../detection_model.pt'))
+my_FR_model.load_state_dict(torch.load('../recognition_model.pt'))
+
+
+# my_FD_model = torch.load('../detection_model.pt')
+# my_FR_model = torch.load('../recognition_model.pt')
+counter = 0
 
 for idx, im in enumerate(imageName):
 
@@ -116,7 +126,6 @@ for idx, im in enumerate(imageName):
         autom_id = random.randint(-1, 80)
 
     AutoRecognSTR.append(autom_id)
-
 FR_score = CHALL_AGC_ComputeRecognScores(AutoRecognSTR, ids)
 _, rem = divmod(total_time, 3600)
 minutes, seconds = divmod(rem, 60)
