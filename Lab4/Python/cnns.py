@@ -8,8 +8,8 @@ from torchvision import transforms
 
 from torchvision.transforms.functional import get_image_size
 
-data_mean = [0.485, 0.456, 0.406]
-data_std = [0.229, 0.224, 0.225]
+data_mean = [0.48464295, 0.4219926, 0.39299254]
+data_std = [0.32095764, 0.30016821, 0.29993387]
 
 det_resized = (224, 224)    # The normalized size of the images in the detection model
 rec_resized = det_resized   # The normalized size of the images in the recognition model
@@ -31,42 +31,19 @@ det_base_transform = transforms.Compose([
 ])
 
 rec_tr_transform = transforms.Compose([
+    transforms.RandomResizedCrop(rec_resized),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=data_mean, std=data_std)
+])
+
+rec_val_transform = transforms.Compose([
     transforms.Resize(rec_resized),
     transforms.ToTensor(),
     transforms.Normalize(mean=data_mean, std=data_std)
 ])
 
-rec_val_transform = rec_tr_transform
-
 detection_cnn_layers = nn.Sequential(
-    nn.Conv2d(3, 8, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(8),
-    nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=2, stride=2),
-
-    nn.Conv2d(8, 16, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(16),
-    nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=2, stride=2),
-
-    nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(32),
-    nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=2, stride=2)
-)
-detection_fc_layers = nn.Sequential(
-    nn.Linear(25088, 16),
-    nn.ReLU(inplace=True),
-    nn.Linear(16, 4)
-)
-
-recognition_cnn_layers = nn.Sequential(
-    nn.Conv2d(3, 8, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(8),
-    nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=2, stride=2),
-
-    nn.Conv2d(8, 16, kernel_size=3, stride=1, padding=1),
+    nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1),
     nn.BatchNorm2d(16),
     nn.ReLU(inplace=True),
     nn.MaxPool2d(kernel_size=2, stride=2),
@@ -79,12 +56,48 @@ recognition_cnn_layers = nn.Sequential(
     nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
     nn.BatchNorm2d(64),
     nn.ReLU(inplace=True),
+    nn.MaxPool2d(kernel_size=2, stride=2),
+
+    nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(128),
+    nn.ReLU(inplace=True),
+    nn.MaxPool2d(kernel_size=2, stride=2)
+)
+detection_fc_layers = nn.Sequential(
+    nn.Dropout(0.3),
+    nn.Linear(25088, 32),
+    nn.ReLU(inplace=True),
+    nn.Dropout(0.3),
+    nn.Linear(32, 4)
+)
+
+recognition_cnn_layers = nn.Sequential(
+    nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(16),
+    nn.ReLU(inplace=True),
+    nn.MaxPool2d(kernel_size=2, stride=2),
+
+    nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(32),
+    nn.ReLU(inplace=True),
+    nn.MaxPool2d(kernel_size=2, stride=2),
+
+    nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(64),
+    nn.ReLU(inplace=True),
+    nn.MaxPool2d(kernel_size=2, stride=2),
+
+    nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(128),
+    nn.ReLU(inplace=True),
     nn.MaxPool2d(kernel_size=2, stride=2)
 )
 recognition_fc_layers = nn.Sequential(
-    nn.Linear(12544, 50),
+    nn.Dropout(0.3),
+    nn.Linear(25088, 32),
     nn.ReLU(inplace=True),
-    nn.Linear(50, 81), # 1-80 are ids + (-1) are 81 identities
+    nn.Dropout(0.3),
+    nn.Linear(32, 81), # 1-80 are ids + (-1) are 81 identities
     nn.Softmax(0)
 )
 
