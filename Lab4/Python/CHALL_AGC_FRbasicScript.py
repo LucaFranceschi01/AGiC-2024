@@ -56,7 +56,6 @@ def my_face_recognition_function(A, detector: nn.CNN, recognizer: nn.CNN):
     bounds = detector.predict(image)
     image = nn.myCrop(image, bounds)
     output = recognizer.predict(image)
-    print(output)
     return output
 
 

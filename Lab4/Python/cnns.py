@@ -98,7 +98,7 @@ recognition_fc_layers = nn.Sequential(
     nn.ReLU(inplace=True),
     nn.Dropout(0.3),
     nn.Linear(32, 81), # 1-80 are ids + (-1) are 81 identities
-    nn.Softmax(0)
+    nn.Softmax(1)
 )
 
 class CNN(nn.Module):
