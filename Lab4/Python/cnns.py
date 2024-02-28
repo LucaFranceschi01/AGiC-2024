@@ -73,33 +73,23 @@ detection_fc_layers = nn.Sequential(
 
 recognition_cnn_layers = nn.Sequential( # prueba al revés (empezar con numero alto de canales e ir reduciendo hasta 64 64 32 32 16 16)
     #64 64 128 128
-    nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(64),
+    nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(16),
     nn.ReLU(inplace=True),
     nn.MaxPool2d(kernel_size=3, stride=2), # prueba de dejarlo en 1 el stride (antes 2)
 
-    nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),
+    nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(32),
+    nn.ReLU(inplace=True),
+    nn.MaxPool2d(kernel_size=3, stride=2),
+
+    nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
     nn.BatchNorm2d(64),
     nn.ReLU(inplace=True),
     nn.MaxPool2d(kernel_size=3, stride=2),
 
-    nn.Conv2d(64, 32, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(32),
-    nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=3, stride=2),
-
-    nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(32),
-    nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=3, stride=2),
-    
-    nn.Conv2d(32, 16, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(16),
-    nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=3, stride=2),
-
-    nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(16),
+    nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(128),
     nn.ReLU(inplace=True),
     nn.MaxPool2d(kernel_size=3, stride=2)
 
@@ -107,11 +97,10 @@ recognition_cnn_layers = nn.Sequential( # prueba al revés (empezar con numero a
 )
 recognition_fc_layers = nn.Sequential(
     # nn.Dropout(0.2),# prueba de quitar dropout
-    nn.Linear(64, 64), # image size que no sea pequeño >12x12
+    nn.Linear(21632, 32), # image size que no sea pequeño >12x12
     nn.ReLU(inplace=True),
     nn.Dropout(0.2),
-    nn.Linear(64, 81), # 1-80 are ids + (-1) are 81 identities
-    nn.Softmax(1)
+    nn.Linear(32, 81), # 1-80 are ids + (-1) are 81 identities
 )
 
 class CNN(nn.Module):
@@ -145,6 +134,7 @@ class CNN(nn.Module):
             elif self.cnn_type == 'recognition':
                 test_image = rec_val_transform(test_image)
                 output = self.forward(test_image.unsqueeze(0))
+                output = torch.softmax(output, 1)
                 output = np.argmax(output)
                 if output == 0:
                     return -1
