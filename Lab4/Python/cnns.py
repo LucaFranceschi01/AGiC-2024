@@ -83,13 +83,23 @@ recognition_cnn_layers = nn.Sequential( # prueba al revés (empezar con numero a
     nn.ReLU(inplace=True),
     nn.MaxPool2d(kernel_size=3, stride=2),
 
-    nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(128),
+    nn.Conv2d(64, 32, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(32),
     nn.ReLU(inplace=True),
     nn.MaxPool2d(kernel_size=3, stride=2),
 
-    nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(128),
+    nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(32),
+    nn.ReLU(inplace=True),
+    nn.MaxPool2d(kernel_size=3, stride=2),
+    
+    nn.Conv2d(32, 16, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(16),
+    nn.ReLU(inplace=True),
+    nn.MaxPool2d(kernel_size=3, stride=2),
+
+    nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(16),
     nn.ReLU(inplace=True),
     nn.MaxPool2d(kernel_size=3, stride=2)
 
@@ -97,10 +107,10 @@ recognition_cnn_layers = nn.Sequential( # prueba al revés (empezar con numero a
 )
 recognition_fc_layers = nn.Sequential(
     # nn.Dropout(0.2),# prueba de quitar dropout
-    nn.Linear(21632, 32), # image size que no sea pequeño >12x12
+    nn.Linear(64, 64), # image size que no sea pequeño >12x12
     nn.ReLU(inplace=True),
     nn.Dropout(0.2),
-    nn.Linear(32, 81), # 1-80 are ids + (-1) are 81 identities
+    nn.Linear(64, 81), # 1-80 are ids + (-1) are 81 identities
     nn.Softmax(1)
 )
 
