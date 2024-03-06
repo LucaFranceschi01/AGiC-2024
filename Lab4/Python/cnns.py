@@ -13,6 +13,7 @@ data_std = [0.32095764, 0.30016821, 0.29993387]
 
 det_resized = (224, 224)    # The normalized size of the images in the detection model
 rec_resized = det_resized   # The normalized size of the images in the recognition model
+prediction_threshold = 0.0
 
 det_tr_transform = transforms.Compose([
     # transforms.Resize(300, 300),
@@ -32,6 +33,13 @@ det_base_transform = transforms.Compose([
 
 rec_tr_transform = transforms.Compose([
     transforms.RandomResizedCrop(rec_resized),
+    transforms.RandomHorizontalFlip(0.5),
+    # transforms.RandomRotation(180),
+    transforms.RandomGrayscale(0.2),
+    transforms.ColorJitter(0.5, 0.5, 0.5, 0.5),
+    transforms.RandomAffine(90),
+    transforms.AutoAugment(),
+    ## scaling shearing affine
     transforms.ToTensor(),
     transforms.Normalize(mean=data_mean, std=data_std)
 ])
@@ -64,26 +72,20 @@ detection_cnn_layers = nn.Sequential(
     nn.MaxPool2d(kernel_size=2, stride=2)
 )
 detection_fc_layers = nn.Sequential(
-    nn.Dropout(0.3),
+    # nn.Dropout(0.3),
     nn.Linear(25088, 32),
     nn.ReLU(inplace=True),
-    nn.Dropout(0.3),
+    nn.Dropout(0.2),
     nn.Linear(32, 4)
 )
 
-recognition_cnn_layers = nn.Sequential( # prueba al revés (empezar con numero alto de canales e ir reduciendo hasta 64 64 32 32 16 16)
-    #64 64 128 128
-    nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(16),
-    nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=3, stride=2), # prueba de dejarlo en 1 el stride (antes 2)
-
-    nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),
-    nn.BatchNorm2d(32),
+recognition_cnn_layers = nn.Sequential(
+    nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(64),
     nn.ReLU(inplace=True),
     nn.MaxPool2d(kernel_size=3, stride=2),
 
-    nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
+    nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),
     nn.BatchNorm2d(64),
     nn.ReLU(inplace=True),
     nn.MaxPool2d(kernel_size=3, stride=2),
@@ -91,16 +93,19 @@ recognition_cnn_layers = nn.Sequential( # prueba al revés (empezar con numero a
     nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
     nn.BatchNorm2d(128),
     nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=3, stride=2)
+    nn.MaxPool2d(kernel_size=3, stride=2),
 
-    # adaptivemaxpooling prueba
+    nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1),
+    nn.BatchNorm2d(128),
+    nn.ReLU(inplace=True),
+    nn.MaxPool2d(kernel_size=3, stride=2)
 )
 recognition_fc_layers = nn.Sequential(
     # nn.Dropout(0.2),# prueba de quitar dropout
-    nn.Linear(21632, 32), # image size que no sea pequeño >12x12
+    nn.Linear(21632, 30), # image size que no sea pequeño >12x12
     nn.ReLU(inplace=True),
     nn.Dropout(0.2),
-    nn.Linear(32, 81), # 1-80 are ids + (-1) are 81 identities
+    nn.Linear(30, 81), # 1-80 are ids + (-1) are 81 identities
 )
 
 class CNN(nn.Module):
@@ -135,10 +140,10 @@ class CNN(nn.Module):
                 test_image = rec_val_transform(test_image)
                 output = self.forward(test_image.unsqueeze(0))
                 output = torch.softmax(output, 1)
-                output = np.argmax(output)
-                if output == 0:
+                prediction = np.argmax(output)
+                if prediction == 0 or output[0][prediction] < prediction_threshold:
                     return -1
-                return int(output)
+                return int(prediction)
             
 def myCrop(image: Image, bounds_tensors):
     w, h = image.size
