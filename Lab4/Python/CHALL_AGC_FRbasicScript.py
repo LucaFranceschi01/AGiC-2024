@@ -116,7 +116,7 @@ for idx, im in enumerate(imageName):
         # a) A number between 1 and 80 (representing one of the identities in the training set)
         # b) A "-1" indicating that none of the 80 users is present in the input image
 
-        autom_id = my_face_recognition_function(A, my_FD_model, my_FR_model)
+        autom_id = my_face_recognition_function(A, nn.mtcnn, my_FR_model)
 
         tt = time.time() - ti
         total_time = total_time + tt

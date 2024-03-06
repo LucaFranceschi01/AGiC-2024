@@ -5,7 +5,7 @@ from torch import nn
 from PIL import Image
 import torch.optim as optim
 from torchvision import transforms
-
+from facenet_pytorch.models.mtcnn import MTCNN
 from torchvision.transforms.functional import get_image_size
 
 data_mean = [0.48464295, 0.4219926, 0.39299254]
@@ -98,14 +98,14 @@ recognition_cnn_layers = nn.Sequential(
     nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1),
     nn.BatchNorm2d(128),
     nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=3, stride=2)
+    nn.MaxPool2d(kernel_size=4, stride=4)
 )
 recognition_fc_layers = nn.Sequential(
     # nn.Dropout(0.2),# prueba de quitar dropout
-    nn.Linear(21632, 30), # image size que no sea pequeño >12x12
+    nn.Linear(4608, 128), # image size que no sea pequeño >12x12
     nn.ReLU(inplace=True),
     nn.Dropout(0.2),
-    nn.Linear(30, 81), # 1-80 are ids + (-1) are 81 identities
+    nn.Linear(128, 81), # 1-80 are ids + (-1) are 81 identities
 )
 
 class CNN(nn.Module):
@@ -163,3 +163,20 @@ def myCrop(image: Image, bounds_tensors):
 
     image = image.crop(bounds)
     return image
+
+
+
+''' IN THE END I WILL USE THE PYTORCH MTCNN TO DETECT (PREPROCESS FACES)'''
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+mtcnn = MTCNN(keep_all=False, device=device, select_largest=True)
+
+def mtcnn_detect(img: np.ndarray):
+    boxes, probs = mtcnn.detect(img)
+    for box in boxes:
+        x_left = int(min(box[0], box[2]))
+        x_right = int(max(box[0], box[2]))
+        y_left = int(min(box[1], box[3]))
+        y_right = int(max(box[1], box[3]))
+
+        return (x_left, y_left, x_right, y_right)
